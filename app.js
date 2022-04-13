@@ -32,7 +32,7 @@ function getTitle(url) {
       // $('.r-ent .title').html()
       // console.log($('.r-ent .title').html())
       $('.r-ent .title').each(function(i) {
-        allTitle[i] = { href: '', title: '', value: '' }
+        allTitle[i] = { href: '', title: '', value: '', push: [] }
         allTitle[i].href = 'https://www.ptt.cc/' + $(this).html().trim().substring(10, 44)
         allTitle[i].title = $(this).text().trim()
         
@@ -47,7 +47,15 @@ function getValue (obj) {
     request(obj.href, function (error, response, body) {
       if (error) throw new Error(error);
       const $ = cheerio.load(body)
-      obj.value = $('#main-content').text()
+      
+      $('.push').each(function(i) { // 用迴圈抓有重複class的推文
+        obj.push[i] = $(this).text()
+      })
+      
+      obj.value = $('#main-container #main-content').html()
+      // $('#main-container #main-content .push').text() 抓推文
+      //  $('span', '#main-content').text()
+      // $('ul .pear').attr('class');
       resolve(allTitle)
     })
   })
@@ -84,10 +92,20 @@ async function asyncFn() {
     //   console.log(allTitle)
     // })
   // const data2 = await getValue('https://www.ptt.cc/bbs/Soft_Job/M.1629962304.A.B23.html');
+  
+  allTitle.forEach((item) => {
+    
+    if (item.value !== null) {
+      let start = item.value.search('時間</span><span class="article-meta-value">')
+      let end = item.value.search('<span class="f2">')
+      item.value = item.value.slice(start, end)
+      item.value.substring(79, item.value.length - 1)
+    }
+  })
   console.log(allTitle); // 1 "2, 成功"
 }
-// asyncFn()
-getPage('https://www.ptt.cc/bbs/Salary/index.html')
+asyncFn()
+// getPage('https://www.ptt.cc/bbs/Salary/index.html')
 // 流程 1.先爬標題跟網址 2.再使用該網址爬內文
 
 
